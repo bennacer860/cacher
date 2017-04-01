@@ -15,21 +15,20 @@ class Main < Sinatra::Base
 end
 
 class Cache
-  @memory = {}
+  @redis = {}
   def self.fetch key, expires_in = 30, &block
     puts ""
-    puts @memory
-    # "cache will expire in #{Time.now.to_i - @memory[key][:expiration_time]}" if @memory[key][:expiration_time] < Time.now.to_i
-    if @memory.key?(key) && (@memory[key][:expiration_time] > Time.now.to_i)
+    puts @redis
+    if @redis.key?(key) && (@redis[key][:expiration_time] > Time.now.to_i)
       # fetch and return result
-      puts "fetch from cache and will expire in #{@memory[key][:expiration_time] - Time.now.to_i}"
-      @memory[key][:value]
+      puts "fetch from cache and will expire in #{@redis[key][:expiration_time] - Time.now.to_i}"
+      @redis[key][:value]
     else
       if block_given?
         # make the DB query and create a new entry for the request result
         puts "did not find key in cache, executing block ..."
-        @memory[key] = {value: yield(block), expiration_time: Time.now.to_i + expires_in}
-        @memory[key][:value]
+        @redis[key] = {value: yield(block), expiration_time: Time.now.to_i + expires_in}
+        @redis[key][:value]
       else
         # no block given, do nothing
         nil
